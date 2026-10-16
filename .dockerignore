@@ -1,0 +1,17 @@
+# Build artifacts and local state that must never enter the image.
+.git
+.gitignore
+.idea
+.vscode
+
+bin/
+coverage.out
+coverage.html
+*.test
+*.test.exe
+
+# Container/tooling files are not needed inside the build context image.
+Dockerfile
+docker-compose.yml
+Makefile
+*.md

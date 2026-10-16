@@ -1,0 +1,60 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tcp-chat-server:latest
+    command: ["-addr", "0.0.0.0:9000"]
+    ports:
+      - "9000:9000"
+    # SIGTERM is delivered on `docker compose down`; the server drains queued
+    # broadcasts and closes every connection before exiting.
+    stop_signal: SIGTERM
+    stop_grace_period: 15s
+    healthcheck:
+      # A raw TCP connect to the listening port proves the server is accepting.
+      test: ["CMD", "/app/healthcheck", "-addr", "127.0.0.1:9000"]
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - chat
+
+  # Demonstration bot living on the same network; started after the server is healthy.
+  bot:
+    image: tcp-chat-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["/app/bot"]
+    command: ["-addr", "server:9000", "-name", "demo-bot"]
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - chat
+
+  # Interactive CLI client. Run with: docker compose --profile client run --rm client
+  client:
+    image: tcp-chat-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["/app/client"]
+    command: ["-addr", "server:9000", "-name", "cli-user"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - chat
+    profiles:
+      - client
+
+networks:
+  chat:
+    driver: bridge
