@@ -1,7 +1,7 @@
 # tcp-chat-server
 
-A small, production-minded **TCP chat server** written in Go. It speaks a
-**custom length-prefixed binary protocol** directly over TCP — no HTTP, no
+A small, production-minded **TCP chat server** written in Go. It speaks a **custom length-prefixed binary protocol**
+directly over TCP — no HTTP, no
 WebSockets — and ships with an interactive console client, a demo bot,
 container images and a `docker compose` stack.
 
@@ -15,7 +15,7 @@ tests.
 ## Highlights
 
 - **Custom binary framing** — `[Type][PayloadLength][Payload]`, big-endian,
-  ~~~~decoded with `io.ReadFull` so partially received packets are handled safely.~~~~
+  decoded with `io.ReadFull` so partially received packets are handled safely.
 - **Goroutine per connection** — each connection owns an independent read loop
   and write loop, both guarded by read/write deadlines.
 - **Thread-safe registry** — active sessions live in a `map[string]*Client`
@@ -65,13 +65,13 @@ tcp-chat-server/
 ## Binary protocol
 
 Every message is a **Frame** consisting of a fixed 3-byte header followed by an
-optional payload. All multi-byte integers are **big-endian**.
+optional payload. All multibyte integers are **big-endian**.
 
-| Field           | Size      | Type              | Notes                          |
-| --------------- | --------- | ----------------- | ------------------------------ |
-| `Type`          | 1 byte    | `uint8`           | Frame kind (see below)         |
-| `PayloadLength` | 2 bytes   | `uint16` (BE)     | Length of `Payload` in bytes   |
-| `Payload`       | N bytes   | UTF-8 / opaque    | `N == PayloadLength`           |
+| Field           | Size    | Type           | Notes                        |
+|-----------------|---------|----------------|------------------------------|
+| `Type`          | 1 byte  | `uint8`        | Frame kind (see below)       |
+| `PayloadLength` | 2 bytes | `uint16` (BE)  | Length of `Payload` in bytes |
+| `Payload`       | N bytes | UTF-8 / opaque | `N == PayloadLength`         |
 
 - Header size: **3 bytes**.
 - Maximum payload: **65535 bytes** (`2^16 − 1`).
@@ -89,13 +89,13 @@ Byte layout:
 
 ### Frame types
 
-| Value | Name         | Direction        | Payload                                    |
-| ----- | ------------ | ---------------- | ------------------------------------------ |
-| 0x01  | `Auth`       | client → server  | Nickname (UTF-8)                           |
-| 0x02  | `Message`    | both             | JSON `{"from":"…","text":"…"}`             |
-| 0x03  | `Disconnect` | both             | Optional human-readable reason             |
-| 0x04  | `Error`      | server → client  | Human-readable error text                  |
-| 0x05  | `Ping`       | both             | Opaque token; the peer echoes it as a Pong |
+| Value | Name         | Direction       | Payload                                    |
+|-------|--------------|-----------------|--------------------------------------------|
+| 0x01  | `Auth`       | client → server | Nickname (UTF-8)                           |
+| 0x02  | `Message`    | both            | JSON `{"from":"…","text":"…"}`             |
+| 0x03  | `Disconnect` | both            | Optional human-readable reason             |
+| 0x04  | `Error`      | server → client | Human-readable error text                  |
+| 0x05  | `Ping`       | both            | Opaque token; the peer echoes it as a Pong |
 
 A connection must send an `Auth` frame first; any other frame before
 authentication is rejected with a `0x04 Error`. Message payloads are JSON so the
@@ -178,18 +178,18 @@ healthcheck that runs the bundled `/app/healthcheck` probe against
 
 The [`Makefile`](Makefile) wraps the common commands:
 
-| Target          | Description                                                       |
-| --------------- | ----------------------------------------------------------------- |
-| `make build`    | Compile `server`, `client`, `bot` and `healthcheck` into `./bin`. |
-| `make run-server` | Run the server on `$(ADDR)` (default `127.0.0.1:9000`).         |
-| `make run-client` | Run the console client as `$(NAME)`.                            |
-| `make run-bot`  | Run the demo bot as `$(BOTNAME)`.                                 |
-| `make test`     | Run the unit and integration suites.                              |
-| `make race`     | Run the suites under the data-race detector.                      |
-| `make lint`     | `go fmt` + `go vet`.                                              |
-| `make docker-build` | Build the multi-stage image.                                 |
-| `make docker-up`    | `docker compose up -d --build`.                              |
-| `make docker-down`  | `docker compose down`.                                       |
+| Target              | Description                                                       |
+|---------------------|-------------------------------------------------------------------|
+| `make build`        | Compile `server`, `client`, `bot` and `healthcheck` into `./bin`. |
+| `make run-server`   | Run the server on `$(ADDR)` (default `127.0.0.1:9000`).           |
+| `make run-client`   | Run the console client as `$(NAME)`.                              |
+| `make run-bot`      | Run the demo bot as `$(BOTNAME)`.                                 |
+| `make test`         | Run the unit and integration suites.                              |
+| `make race`         | Run the suites under the data-race detector.                      |
+| `make lint`         | `go fmt` + `go vet`.                                              |
+| `make docker-build` | Build the multi-stage image.                                      |
+| `make docker-up`    | `docker compose up -d --build`.                                   |
+| `make docker-down`  | `docker compose down`.                                            |
 
 Positional variables can be overridden, e.g.:
 
@@ -208,17 +208,17 @@ go run ./cmd/bot    -addr 127.0.0.1:9000 -name demo-bot
 
 ### Server flags
 
-| Flag                 | Default          | Purpose                                        |
-| -------------------- | ---------------- | ---------------------------------------------- |
-| `-addr`              | `127.0.0.1:9000` | TCP listen address                             |
-| `-healthcheck`       | `false`          | Dial `-addr` once, exit `0` if the port is open |
-| `-shutdown-timeout`  | `15s`            | Maximum time to drain pending writes           |
-| `-max-connections`   | `1024`           | Maximum concurrent TCP connections             |
-| `-send-queue`        | `128`            | Outbound frames buffered per connection        |
-| `-broadcast-queue`   | `256`            | Pending broadcasts buffered on the hub         |
-| `-auth-timeout`      | `10s`            | Time allowed for the initial `Auth` frame      |
-| `-idle-timeout`      | `5m`             | Time allowed to read each subsequent frame     |
-| `-write-timeout`     | `5s`             | Time allowed to write each frame               |
+| Flag                | Default          | Purpose                                         |
+|---------------------|------------------|-------------------------------------------------|
+| `-addr`             | `127.0.0.1:9000` | TCP listen address                              |
+| `-healthcheck`      | `false`          | Dial `-addr` once, exit `0` if the port is open |
+| `-shutdown-timeout` | `15s`            | Maximum time to drain pending writes            |
+| `-max-connections`  | `1024`           | Maximum concurrent TCP connections              |
+| `-send-queue`       | `128`            | Outbound frames buffered per connection         |
+| `-broadcast-queue`  | `256`            | Pending broadcasts buffered on the hub          |
+| `-auth-timeout`     | `10s`            | Time allowed for the initial `Auth` frame       |
+| `-idle-timeout`     | `5m`             | Time allowed to read each subsequent frame      |
+| `-write-timeout`    | `5s`             | Time allowed to write each frame                |
 
 ---
 
